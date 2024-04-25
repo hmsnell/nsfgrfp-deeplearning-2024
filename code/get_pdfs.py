@@ -2,8 +2,25 @@ import requests
 import pandas as pd
 import os
 
-def download_pdf(id,count):
+def download_google_pdf(id,count):
     url = "https://drive.google.com/uc?export=download&id="
+    print(id)
+    url = url+id
+    try:
+        # Send GET request
+        response = requests.get(url)
+        # Raise an exception if the request was unsuccessful
+        response.raise_for_status()
+
+        # Write the contents of the response to a file
+        with open('data/PDFs/pdf'+str(count)+'.pdf', 'wb') as f:
+            f.write(response.content)
+        print(f"PDF has been successfully downloaded and saved as {filename}")
+    except requests.RequestException as e:
+        print(f"An error occurred: {e}")
+
+def download_pdf(hyperlink, count):
+    url = hyperlink
     print(id)
     url = url+id
     try:
@@ -42,7 +59,10 @@ for _, row in df.iterrows():
     # Check if 'googledrive' is in the hyperlink
     if type(hyperlink)==str and 'drive.google' in hyperlink :
         count+=1
-        download_pdf(proposal_id,count)
+        download_google_pdf(proposal_id,count)
+    if type(hyperlink)==str and '.pdf' in hyperlink: 
+        count+=1
+        download_pdf(proposal_id, count)
     else:
         ncount+=1
         print(f"Not google drive: {proposal_id}")

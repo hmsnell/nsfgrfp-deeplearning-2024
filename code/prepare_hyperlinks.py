@@ -14,12 +14,18 @@ proposal_hl = []
 personal_hl = []
 for i in range(2, len(nsf_df) + 2):
     try: 
-        proposal_hl.append(ws.cell(row=i, column=6).hyperlink.target)
+        hyperlink = ws.cell(row=i, column=6).hyperlink.target
+        if nsf_df['Examples Host'] == "Alex Lang":
+            hyperlink = hyperlink.str.split('/').str[5]
+        proposal_hl.append(hyperlink)
     except:
         proposal_hl.append("NA")
 
     try: 
-        personal_hl.append(ws.cell(row=i, column=7).hyperlink.target)
+        hyperlink = ws.cell(row=i, column=7).hyperlink.target
+        if nsf_df['Examples Host'] == "Alex Lang":
+            hyperlink = hyperlink.str.split('/').str[5]
+        personal_hl.append(hyperlink)
     except:
         personal_hl.append("NA")   
 
@@ -27,7 +33,8 @@ for i in range(2, len(nsf_df) + 2):
 nsf_df = nsf_df.assign(proposal_hyperlinks=proposal_hl) 
 nsf_df = nsf_df.assign(personal_hyperlinks=personal_hl)
 
-nsf_df['proposal_id'] = nsf_df['proposal_hyperlinks'].str.split('/').str[5]
-nsf_df['personal_id'] = nsf_df['personal_hyperlinks'].str.split('/').str[5]
+#nsf_df['proposal_id'] = nsf_df['proposal_hyperlinks'].str.split('/').str[5]
+#nsf_df['personal_id'] = nsf_df['personal_hyperlinks'].str.split('/').str[5]
+
 csv_filename = 'data/hyperlinks.csv'
 nsf_df.to_csv(csv_filename, index=False)
