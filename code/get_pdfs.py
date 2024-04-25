@@ -21,8 +21,11 @@ def download_google_pdf(id,count):
 def download_pdf(hyperlink, count):
     url = hyperlink
     try:
+        headers = {
+        'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36',
+        }
         # Send GET request
-        response = requests.get(url)
+        response = requests.get(url, headers=headers)
         # Raise an exception if the request was unsuccessful
         response.raise_for_status()
         # Write the contents of the response to a file
