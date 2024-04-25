@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 import openpyxl
 
 # get file path and read in a datframe of our data and the workbook form of our data
@@ -27,7 +28,12 @@ for i in range(2, len(nsf_df) + 2):
 nsf_df = nsf_df.assign(proposal_hyperlinks=proposal_hl) 
 nsf_df = nsf_df.assign(personal_hyperlinks=personal_hl)
 
+# get rid of rows where there is no proposal available
+nsf_df = nsf_df.replace("NA",np.NaN)
+nsf_df = nsf_df[nsf_df['proposal_hyperlinks'].notna()]
+
 nsf_df['proposal_id'] = nsf_df['proposal_hyperlinks'].str.split('/').str[5]
 nsf_df['personal_id'] = nsf_df['personal_hyperlinks'].str.split('/').str[5]
+
 csv_filename = 'data/hyperlinks.csv'
 nsf_df.to_csv(csv_filename, index=False)
