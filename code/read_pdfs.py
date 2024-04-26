@@ -24,7 +24,7 @@ def read_pdfs_and_save_to_csv(folder_path, output_csv):
                     lines = content.split('\n')
                     title = pdf_path.split('pdf')[1]
                     text = '\n'.join(lines[1:])  
-                    text = text.replace('\n', '') 
+                    text = text.replace('\n', ' ') 
                     
                     data['title'].append(title)
                     data['text'].append(text)
