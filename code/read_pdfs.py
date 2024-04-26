@@ -15,17 +15,21 @@ def read_pdfs_and_save_to_csv(folder_path, output_csv):
     data = {'title': [], 'text': []}
     folder_path=folder_path+'/PDFs'
     for filename in os.listdir(folder_path):
-        if filename.endswith('.pdf'):
-            pdf_path = os.path.join(folder_path, filename)
-            content = extract_pdf_content(pdf_path)
-            if content:
-                lines = content.split('\n')
-                title = pdf_path.split('pdf')[1]
-                text = '\n'.join(lines[1:])  
-                text = text.replace('\n', '') 
-                
-                data['title'].append(title)
-                data['text'].append(text)
+
+        try:
+            if filename.endswith('.pdf'):
+                pdf_path = os.path.join(folder_path, filename)
+                content = extract_pdf_content(pdf_path)
+                if content:
+                    lines = content.split('\n')
+                    title = pdf_path.split('pdf')[1]
+                    text = '\n'.join(lines[1:])  
+                    text = text.replace('\n', '') 
+                    
+                    data['title'].append(title)
+                    data['text'].append(text)
+        except:
+            pass 
 
     # Create a DataFrame and save to CSV
     df = pd.DataFrame(data)
