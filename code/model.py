@@ -54,6 +54,7 @@ def main(args):
     # preprocess data
     train_data, test_data, vocab = preprocess_complete("../data/pdf_texts.csv", "text")
 
+    print(train_data.shape())
     # get an instance of AE
     model = AE(len(vocab))
 
