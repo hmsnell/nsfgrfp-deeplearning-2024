@@ -47,19 +47,19 @@ if not os.path.exists('data/PDFs'):
 else:
     print(f"Directory '{'PDFs'}' already exists")
 
-ncount,count=0,0
+ncount,count,index=0,0,1
 for _, row in df.iterrows():
     proposal_id = row['proposal_id']
     hyperlink = row['proposal_hyperlinks']
     Name = row['Name']
-    
+    index+=1
     # Check if 'googledrive' is in the hyperlink
     if type(hyperlink)==str and 'drive.google' in hyperlink :
         count+=1
-        download_google_pdf(proposal_id,count)
+        download_google_pdf(proposal_id,index)
     elif type(hyperlink)==str and '.pdf' in hyperlink: 
         count+=1
-        download_pdf(hyperlink, count)
+        download_pdf(hyperlink, index)
     else:
         ncount+=1
         print(f"Not accepted link: {hyperlink}")
