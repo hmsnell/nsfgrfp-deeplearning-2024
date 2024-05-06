@@ -1,0 +1,45 @@
+{
+  "dataset_name": "sst2",
+  "data_dir_path": "/home/lixiaoya/gpt_data_models/data/sst2_original",
+  "save_log_dir": "/home/lixiaoya/outputs/gpt_text/sst2_original/gpt3_zeroshot/classify_davinci003_random",
+ "gpt3_backbone": "vanilla",
+  "gpt3_model_config": {
+    "openai_api_key":
+      "sk-rdm",
+    "batch_size": 18,
+    "engine_name": "text-davinci-003",
+    "max_retries": 12,
+    "max_tokens": 200,
+    "temperature": 0.7,
+    "top_p": 1,
+    "frequency_penalty": 0.0,
+    "presence_penalty": 0.0,
+    "best_of": 1,
+    "max_sleep_time": 1200,
+    "request_timeout": 10000,
+    "rate_limit": 50,
+    "rate_limit_delay": 70,
+    "logprobs": 5,
+    "init_delay": 1
+  },
+  "prompt_type": "zero-shot",
+  "prompt_config": {
+    "gradient_update": false,
+    "instance_num": 0,
+    "instance_strategy": "NULL",
+    "model_backbone": "gpt-3",
+    "prompt_strategy": "zero-shot",
+    "prompt_pattern": "<TASK-DESC><DELIMITER>INPUT: <INPUT-TEXT>\nSENTIMENT: ",
+    "task_description": "This is an overall sentiment classifier for opinion snippets. Classify the overall SENTIMENT of the INPUT as Positive or Negative.",
+    "delimiter": "\n\n",
+    "verbalizer": {
+      "1": "Positive",
+      "0": "Negative"
+    },
+    "verbalizer_position_idx": -1,
+    "non_verbalizer": [
+      "wrong",
+      "random"
+    ]
+  }
+}
