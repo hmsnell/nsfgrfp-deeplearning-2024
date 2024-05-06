@@ -284,6 +284,7 @@ def preprocess_complete_ver2(csv_file, text_column):
     #     train_sentence_f+=tr
     #     test_sentence_f+=tes
     sentences,labels=[],[]
+<<<<<<< HEAD
     for index, row in df.iloc[0:].iterrows(): 
         elements = str(row[1]).split('.')#text
         sentences+=elements
@@ -291,6 +292,11 @@ def preprocess_complete_ver2(csv_file, text_column):
     #print(len(sentences))
     for idx in range(len(sentences)):
       sentence=sentences[idx]
+=======
+    for idx in range(len(df)):
+      labels.append(df.iloc[idx,2])
+      sentence=df.iloc[idx,1]
+>>>>>>> 7e417dc9d289bec2718ef9fb64609629d219348b
       no_punc_sentence = re.sub(r'[^\w\s]', ' ', sentence)
       words = no_punc_sentence.split()
       sentence=''
@@ -301,8 +307,8 @@ def preprocess_complete_ver2(csv_file, text_column):
              sentence+=word
           sentence+=' '
       sentence = sentence[:-1]
-      sentences[idx]=sentence
-    for idx in range(len(labels)):
+      sentences.append(sentence)
+    for idx in range(len(df)):
        if labels[idx]=='Winner!':
           labels[idx]=1
        else:
@@ -312,4 +318,4 @@ def preprocess_complete_ver2(csv_file, text_column):
 
 text = "text"
 #final_train, final_test, final_vocab = preprocess_complete("../data/pdf_texts.csv",text)
-#sentences_train, sentences_test, labels_train,labels_test = preprocess_complete_ver2("../data/pdf_texts.tsv",text)
+sentences_train, sentences_test, labels_train,labels_test = preprocess_complete_ver2("../data/pdf_texts.tsv",text)

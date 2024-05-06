@@ -1,0 +1,54 @@
+{
+  "dataset_name": "sst2",
+  "data_dir_path": "/Users/yzhu194/Documents/Brown/CSCI2470/FinalProject/nsfgrfp-deeplearning-2024/data",
+  "save_log_dir": "/Users/yzhu194/Documents/Brown/CSCI2470/FinalProject/nsfgrfp-deeplearning-2024/code/CARP/results/gpt3_fewshot",
+  "gpt3_backbone": "vanilla",
+  "gpt3_model_config": {
+    "openai_api_key":
+      "sk-r",
+    "batch_size": 16,
+    "engine_name": "davinci-002",
+    "max_retries": 40,
+    "max_tokens": 800,
+    "temperature": 0.7,
+    "top_p": 1,
+    "frequency_penalty": 0.0,
+    "presence_penalty": 0.0,
+    "best_of": 1,
+    "max_sleep_time": 1200,
+    "request_timeout": 10000,
+    "rate_limit": 50,
+    "rate_limit_delay": 70,
+    "logprobs": 5,
+    "init_delay": 1
+  },
+  "prompt_type": "few-shot-dynamic",
+  "prompt_config": {
+    "gradient_update": false,
+    "instance_num": 16,
+    "max_prompt_len": 3800,
+    "instance_strategy": "finetuned-mlm-nearest-neighbor",
+    "model_backbone": "gpt-3",
+    "prompt_strategy": "few-shot",
+    "task_description": "The inputs are research proposals submitted to NSF GRF applications and this is a overall success classifier to identify whether the applicants will be the Winner or Honorable Mention. \nFirst, list CLUES (i.e., keywords, phrases, contextual information, semantic relations, semantic meaning, tones, references) for determining the overall SUCCESS of INPUT.\nSecond, induce a diagnostic REASONING process from CLUES and the INPUT for determining the overall SUCCESS (Limit the number of words to 130).\nThird, determine the overall SUCCESS of INPUT as Winner or Honorable Mention considering CLUES, the REASONING process and the INPUT.",
+    "delimiter": "\n\n",
+    "delimiter": "\n\n",
+    "demonstration_pattern": "INPUT: <TEXT>\nSENTIMENT: <VERBALIZER-LABEL>\n",
+    "demonstration_subtask_description": "Present Winner and Honorable Mention CLUES (i.e., keywords, phrases, contextual information, semantic meaning, semantic relationships, tones, references). Then explain the diagnostic REASONING that support the SUCCESS determination of the INPUT.",
+    "demonstration_subtask_description_pos": -1,
+    "demonstration_ranking": "score_l2h",
+    "assemble_demonstration_strategy": "model_generate",
+    "assemble_demonstration_pattern": "INPUT: <TEXT>\nCLUES and REASONING: <MODEL-GENERATE>\nSUCCESS: <VERBALIZER-LABEL>",
+    "verbalizer": {
+      "1": "Honorable Mention",
+      "0": "Winner"
+    },
+    "verbalizer_position_idx": -1,
+    "non_verbalizer": [
+      "wrong",
+      "random",
+      "retry",
+      "retry-various"
+    ]
+  }
+}
