@@ -65,7 +65,7 @@ class ClusteringLayer(Layer): # reference: https://github.com/Tony607/Keras_Deep
         """
         q = 1.0 / (1.0 + (K.sum(K.square(K.expand_dims(inputs, axis=1) - self.clusters), axis=2) / self.alpha))
         q **= (self.alpha + 1.0) / 2.0
-        q = K.transpose(K.transpose(q) / K.sum(q, axis=1)) # Make sure each sample's 10 values add up to 1.
+        q = K.transpose(K.transpose(q) / K.sum(q, axis=1)) 
         return q
 
     def compute_output_shape(self, input_shape):
@@ -99,10 +99,11 @@ def autoencoder(encoder, decoder):
     autoencoder = tf.keras.models.Model(encoder.input, decoder(encoder.output), name = 'autoencoder')
     return autoencoder
 
-def kmeans_clustering(x, y, n_clusters, weight_list): # weighted k-means
+def kmeans_clustering(x, y, n_clusters): # weighted k-means
+    
     kmeans = KMeans(n_clusters = n_clusters)
-    weight_kmeans = kmeans.fit(x, sample_weight = weight_list)
-    y_pred_kmeans = kmeans.predict(x, sample_weight = weight_list)   
+    weight_kmeans = kmeans.fit(x)
+    y_pred_kmeans = kmeans.predict(x)   
 
     accuracy = accuracy_score(y, y_pred_kmeans)
     matrix = get_final_results(y, y_pred_kmeans)
@@ -129,7 +130,7 @@ def train_noclustering(train_data, max_sequence_length):
 
     return encoder_layer
 
-def train_clustering(encoder_layer, train_data, train_labels, weight_list_train):
+def train_clustering(encoder_layer, train_data, train_labels):
     ## clustering 
 
     batch_size = 256
@@ -140,7 +141,7 @@ def train_clustering(encoder_layer, train_data, train_labels, weight_list_train)
 
     # initialize cluster centers 
     kmeans = KMeans(n_clusters = n_clusters, n_init = 20)
-    y_pred = kmeans.fit_predict(encoder_layer.predict(train_data), sample_weight = weight_list_train)
+    y_pred = kmeans.fit_predict(encoder_layer.predict(train_data))
 
     y_pred_last = np.copy(y_pred)
 
@@ -217,9 +218,9 @@ def get_weights(labels):
     weight_list = []
     for i in labels: 
         if i == 0: 
-            weight_list.append(0.069)
-        else: 
             weight_list.append(0.931)
+        else: 
+            weight_list.append(0.069)
     
     weight_list = np.array(weight_list)
 
