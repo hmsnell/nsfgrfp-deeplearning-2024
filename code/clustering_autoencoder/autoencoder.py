@@ -83,7 +83,7 @@ def encoder(input_dim, encoding_dim, vocab_size, embedding_dim):
     #embedded_flat = tf.keras.layers.Flatten()(embedded)                                 # flatten embeddings
     encoded = tf.keras.layers.Dense(encoding_dim, activation = 'relu')(inputs)          # dense layer (can add more if needed)
     encoded2 = tf.keras.layers.Dense(encoding_dim, activation = 'relu')(encoded)
-    encoded3 = tf.keras.layers.Dense(encoding_dim, activation =  'relu')(encoded2)
+    encoded3 = tf.keras.layers.Dense(encoding_dim)(encoded2)
 
     encoder = tf.keras.models.Model(inputs, encoded3, name = 'encoder')                  # build model 
     
@@ -91,8 +91,10 @@ def encoder(input_dim, encoding_dim, vocab_size, embedding_dim):
 
 def decoder(input_dim, encoding_dim):
     encoded_input = tf.keras.layers.Input(shape=(encoding_dim,))                        # get inputs from encoder
-    decoded = tf.keras.layers.Dense(input_dim, activation = 'sigmoid')(encoded_input)   # dense layer (can add more)
-    decoder = tf.keras.models.Model(encoded_input, decoded, name = 'decoder')           # build model
+    decoded = tf.keras.layers.Dense(encoding_dim, activation = 'relu')(encoded_input)   # dense layer (can add more)
+    decoded2 = tf.keras.layers.Dense(encoding_dim, activation = 'relu')(decoded)
+    decoded3 = tf.keras.layers.Dense(input_dim)(decoded2)
+    decoder = tf.keras.models.Model(encoded_input, decoded3, name = 'decoder')           # build model
     return decoder
 
 def autoencoder(encoder, decoder): 
@@ -124,7 +126,7 @@ def train_noclustering(train_data, max_sequence_length):
     opt = tf.keras.optimizers.Adam(learning_rate = 0.0001)
     model.compile(optimizer = opt, loss = 'mse')
 
-    model.fit(train_data, train_data, epochs = 300, batch_size = 256, shuffle = True)
+    model.fit(train_data, train_data, epochs = 1500, batch_size = 256, shuffle = True)
 
     model.save_weights('./ae_noclustering')
 
@@ -157,7 +159,7 @@ def train_clustering(encoder_layer, train_data, train_labels):
     update_interval = 140
     index_array = np.arange(train_data.shape[0])
     tol = -0.0001
-    
+
 
     ## train with clustering 
     for ite in range(int(maxiter)):
