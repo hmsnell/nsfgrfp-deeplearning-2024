@@ -218,14 +218,13 @@ def get_final_results(y, y_pred):
 
 def main():
 
-    train_data, test_data = preprocess_complete_ver2("../data/pdf_texts.tsv", "text")
+    sentences, labels = preprocess_complete_ver2("../data/pdf_texts.tsv", "text")
 
     ##### dummy data 
     
-    texts = train_data
-    print(texts[0:5])
-    labels = test_data
-    print(labels[0:5])
+    texts = sentences
+   
+    labels = labels
     # tokenize
     tokenizer = Tokenizer()
     tokenizer.fit_on_texts(texts)
