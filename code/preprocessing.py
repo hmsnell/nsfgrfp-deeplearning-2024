@@ -284,19 +284,9 @@ def preprocess_complete_ver2(csv_file, text_column):
     #     train_sentence_f+=tr
     #     test_sentence_f+=tes
     sentences,labels=[],[]
-<<<<<<< HEAD
-    for index, row in df.iloc[0:].iterrows(): 
-        elements = str(row[1]).split('.')#text
-        sentences+=elements
-        labels+=[row[2]]*len(elements)#label
-    #print(len(sentences))
-    for idx in range(len(sentences)):
-      sentence=sentences[idx]
-=======
     for idx in range(len(df)):
       labels.append(df.iloc[idx,2])
       sentence=df.iloc[idx,1]
->>>>>>> 7e417dc9d289bec2718ef9fb64609629d219348b
       no_punc_sentence = re.sub(r'[^\w\s]', ' ', sentence)
       words = no_punc_sentence.split()
       sentence=''

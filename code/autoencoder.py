@@ -255,12 +255,13 @@ def set_seed(seed: int = 42) -> None:
 def main():
 
     set_seed()
-    sentences , labels = preprocess_complete_ver2("../data/pdf_texts.tsv", "text")
+    sentences, labels = preprocess_complete_ver2("../data/pdf_texts.tsv", "text")
 
     ##### dummy data 
     
     texts = sentences
     labels = labels
+    print(len(labels))
 
     # tokenize
     tokenizer = Tokenizer()
@@ -288,15 +289,15 @@ def main():
 
     ######
 
-    kmeans_accuracy = kmeans_clustering(train_data, train_labels, 2)
-    print(kmeans_accuracy)
+    #kmeans_accuracy = kmeans_clustering(train_data, train_labels, 2)
+    #print(kmeans_accuracy)
 
-    encoder_layer = train_noclustering(train_data, max_sequence_length)
+    #encoder_layer = train_noclustering(train_data, max_sequence_length)
     #for epoch_id in range(300):
     #    total_loss = train_clustering(encoder_layer, train_data, train_labels)
     #    print(f"Train Epoch: {epoch_id} \tLoss: {total_loss / len(train_data):.6f}")
-    clustering_model, loss = train_clustering(encoder_layer, train_data, train_labels)
-    y_pred = test_clustering(clustering_model, loss, test_data, test_labels)
+    #clustering_model, loss = train_clustering(encoder_layer, train_data, train_labels)
+    #y_pred = test_clustering(clustering_model, loss, test_data, test_labels)
     #print(y_pred)
     #print(get_final_results(test_labels, y_pred))
 
