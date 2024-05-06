@@ -9,9 +9,14 @@ from keras.preprocessing.sequence import pad_sequences
 from sklearn.cluster import KMeans 
 from preprocessing import *
 from sklearn.metrics import *
-from scipy.optimize import linear_sum_assignment as linear_assignment
 import matplotlib.pyplot as plt
 import sys
+from tqdm import tqdm
+import os
+import random
+
+
+
 class ClusteringLayer(Layer): # reference: https://github.com/Tony607/Keras_Deep_Clustering/blob/master/Keras-DEC.ipynb
     """
     Clustering layer converts input sample (feature) to soft label.
@@ -77,8 +82,11 @@ def encoder(input_dim, encoding_dim, vocab_size, embedding_dim):
     inputs = tf.keras.layers.Input(shape = (input_dim,))                               # get inputs
     #embedded = tf.keras.layers.Embedding(vocab_size, embedding_dim)(inputs)             # embed inputs
     #embedded_flat = tf.keras.layers.Flatten()(embedded)                                 # flatten embeddings
-    encoded = tf.keras.layers.Dense(encoding_dim, activation = 'relu')(inputs)   # dense layer (can add more if needed)
-    encoder = tf.keras.models.Model(inputs, encoded, name = 'encoder')                  # build model 
+    encoded = tf.keras.layers.Dense(encoding_dim, activation = 'relu')(inputs)          # dense layer (can add more if needed)
+    encoded2 = tf.keras.layers.Dense(encoding_dim, activation = 'relu')(encoded)
+    encoded3 = tf.keras.layers.Dense(encoding_dim, activation =  'relu')(encoded2)
+
+    encoder = tf.keras.models.Model(inputs, encoded3, name = 'encoder')                  # build model 
     
     return encoder
 
@@ -103,14 +111,15 @@ def train_noclustering(train_data, max_sequence_length):
     ## train model without clustering and save weights 
 
     input_dim = train_data.shape[1]
-    encoding_dim = 2
+    encoding_dim = 256
 
     encoder_layer = encoder(input_dim, encoding_dim, max_sequence_length, embedding_dim = 2)
     decoder_layer = decoder(input_dim, encoding_dim)
 
     model = autoencoder(encoder_layer, decoder_layer)
 
-    model.compile(optimizer='adam', loss = 'mse')
+    opt = tf.keras.optimizers.Adam(learning_rate = 0.01)
+    model.compile(optimizer = opt, loss = 'mse')
 
     model.fit(train_data, train_data, epochs = 300, batch_size = 256, shuffle = True)
 
@@ -121,10 +130,11 @@ def train_noclustering(train_data, max_sequence_length):
 def train_clustering(encoder_layer, train_data, train_labels):
     ## clustering 
 
+    batch_size = 256
     n_clusters = 2
     clustering_layer = ClusteringLayer(n_clusters)(encoder_layer.output)
     clustering_model = Model(inputs = encoder_layer.input, outputs = clustering_layer)
-    clustering_model.compile(optimizer = tf.keras.optimizers.SGD(0.01, 0.9), loss = 'kld')
+    clustering_model.compile(optimizer = tf.keras.optimizers.Adam(0.1), loss = 'kld')
 
     # initialize cluster centers 
     kmeans = KMeans(n_clusters = n_clusters, n_init = 20)
@@ -134,6 +144,22 @@ def train_clustering(encoder_layer, train_data, train_labels):
 
     clustering_model.get_layer(name = 'clustering_layer').set_weights([kmeans.cluster_centers_])
 
+    clustering_model.save_weights('./ae_clustering')
+
+    # optimizer = tf.keras.optimizers.Adam(learning_rate = 0.001)
+    # total_loss = 0
+    # for (batch, (train_data, train_labels)) in enumerate(tqdm(len(train_data))):
+    #     with tf.GradientTape() as tape:
+    #         q = clustering_model.predict(train_data, verbose = 0)
+    #         p = target_distn(q)
+    #         y_pred = q.argmax(1)
+    #         loss = tf.keras.losses.SparseCategoricalCrossEntropy(train_labels, y_pred)
+    #         #print(loss)
+    #     gradients = tape.gradient(loss, clustering_model.trainable_variables)
+    #     optimizer.apply_gradients(zip(gradients, clustering_model.trainable_variables))
+    #     total_loss += (loss.numpy() / (batch_size))
+    # return total_loss
+
     # deep clustering 
     
     loss = 0
@@ -142,9 +168,9 @@ def train_clustering(encoder_layer, train_data, train_labels):
     update_interval = 140
     index_array = np.arange(train_data.shape[0])
     tol = -0.0001
-    batch_size = 256
+    
 
-    ### train with clustering 
+    ## train with clustering 
     for ite in range(int(maxiter)):
         if ite % update_interval == 0:
             q = clustering_model.predict(train_data, verbose=0)
@@ -154,7 +180,7 @@ def train_clustering(encoder_layer, train_data, train_labels):
             y_pred = q.argmax(1)
             if train_labels is not None:
                 acc = np.round(accuracy_score(train_labels, y_pred), 5)
-            loss = np.round(loss, 5)
+                loss = np.round(loss, 5)
             print('Iter %d: acc = %.5f' % (ite, acc), ' ; loss=', loss)
 
             # check stop criterion - model convergence
@@ -165,17 +191,14 @@ def train_clustering(encoder_layer, train_data, train_labels):
                 print('Reached tolerance threshold. Stopping training.')
                 break
         idx = index_array[index * batch_size: min((index+1) * batch_size, train_data.shape[0])]
-        loss = clustering_model.train_on_batch(x = train_data[idx], y=p[idx])
+        loss = clustering_model.train_on_batch(x = train_data[idx], y = p[idx])
         index = index + 1 if (index + 1) * batch_size <= train_data.shape[0] else 0
-
-    clustering_model.save_weights('./ae_clustering')
 
     return clustering_model, loss
 
 def test_clustering(clustering_model, loss, test_data, test_labels):
     # evaluation testing
 
-    loss = 0
     clustering_model.load_weights('./ae_clustering')
     # Eval.
     q = clustering_model.predict(test_data, verbose=0)
@@ -216,15 +239,29 @@ def get_final_results(y, y_pred):
 
     return w
 
+def set_seed(seed: int = 42) -> None:
+    random.seed(seed)
+    np.random.seed(seed)
+    tf.random.set_seed(seed)
+    # tf.experimental.numpy.random.seed(seed)
+    # tf.set_random_seed(seed)
+    # When running on the CuDNN backend, two further options must be set
+    os.environ['TF_CUDNN_DETERMINISTIC'] = '1'
+    os.environ['TF_DETERMINISTIC_OPS'] = '1'
+    # Set a fixed value for the hash seed
+    os.environ["PYTHONHASHSEED"] = str(seed)
+    print(f"Random seed set as {seed}")
+
 def main():
 
-    sentences, labels = preprocess_complete_ver2("../data/pdf_texts.tsv", "text")
+    set_seed()
+    sentences , labels = preprocess_complete_ver2("../data/pdf_texts.tsv", "text")
 
     ##### dummy data 
     
     texts = sentences
-   
     labels = labels
+
     # tokenize
     tokenizer = Tokenizer()
     tokenizer.fit_on_texts(texts)
@@ -236,13 +273,18 @@ def main():
     max_sequence_length = max(len(seq) for seq in sequences)
     padded_sequences = pad_sequences(sequences, maxlen = max_sequence_length, padding = 'post')
 
-    train_data = padded_sequences[1:5]
-    test_data = padded_sequences[5:6]
-    train_labels = labels[1:5]
-    test_labels = labels[5:6]
+    # split train and test data 
+    total_sentences = len(padded_sequences)
+    train_ratio = int(total_sentences * 0.8)
+    #test_ratio = 1 - train_ratio
 
-    #print(train_data)
-    #print(train_labels)
+    train_data = padded_sequences[0:train_ratio]
+    test_data = padded_sequences[train_ratio:total_sentences]
+    train_labels = np.array(labels[0:train_ratio])
+    test_labels = np.array(labels[train_ratio:total_sentences])
+
+    #print(test_data)
+    #print(test_labels)
 
     ######
 
@@ -250,6 +292,9 @@ def main():
     print(kmeans_accuracy)
 
     encoder_layer = train_noclustering(train_data, max_sequence_length)
+    #for epoch_id in range(300):
+    #    total_loss = train_clustering(encoder_layer, train_data, train_labels)
+    #    print(f"Train Epoch: {epoch_id} \tLoss: {total_loss / len(train_data):.6f}")
     clustering_model, loss = train_clustering(encoder_layer, train_data, train_labels)
     y_pred = test_clustering(clustering_model, loss, test_data, test_labels)
     #print(y_pred)

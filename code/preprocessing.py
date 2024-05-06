@@ -288,7 +288,7 @@ def preprocess_complete_ver2(csv_file, text_column):
         elements = str(row[1]).split('.')#text
         sentences+=elements
         labels+=[row[2]]*len(elements)#label
-    print(len(sentences))
+    #print(len(sentences))
     for idx in range(len(sentences)):
       sentence=sentences[idx]
       no_punc_sentence = re.sub(r'[^\w\s]', ' ', sentence)
