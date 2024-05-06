@@ -3,6 +3,8 @@ import numpy as np
 import pandas as pd
 from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
+from sklearn.cluster import OPTICS
+from sklearn.manifold import TSNE
 from sklearn.model_selection import train_test_split
 import re
 import csv
@@ -13,6 +15,7 @@ import random
 from tensorflow.math import sigmoid
 from tqdm import tqdm
 from vae import VAE, reparametrize,  kil_adavae_loss
+import matplotlib.pyplot as plt
 
 def parseArguments():
     parser = argparse.ArgumentParser()
@@ -147,7 +150,7 @@ def train_vae(model, train_loader, args, winner_index):
     for (batch, (essays, labels, winner_index)) in enumerate(tqdm(train_loader)):
         with tf.GradientTape() as tape:
             x_hat, mu, logvar = model(essays)
-            loss = kil_adavae_loss(x_hat, essays, mu, 1.0, logvar, winner_index)
+            loss = kil_adavae_loss(x_hat, essays, mu, 1.2, logvar, winner_index)
         gradients = tape.gradient(loss, model.trainable_variables)
         optimizer.apply_gradients(zip(gradients, model.trainable_variables))
         total_loss += (loss.numpy() / args.batch_size) 
@@ -198,9 +201,55 @@ def main(args):
 
     # save the latent representation 
     latent_rep = train_vae(model, train_dataset, args, is_winner)[1]
+
+    clustering = OPTICS(min_samples=5).fit(latent_rep)
+    print(clustering.labels_)
+
+    y_train_dataset = train_dataset.map(lambda x, y, z: y)
+    y_train_values= [y.numpy() for y in y_train_dataset]
+    y_df = pd.DataFrame(y_train_values).transpose()
+
+    tsne = TSNE(n_components = 2)
+    data_trans = tsne.fit_transform(latent_rep)
+
+    plt.figure(figsize=(8,6))
+    plt.scatter(data_trans[:, 0], data_trans[:, 1], c = clustering.labels_.astype(int), cmap = 'tab10')
+    plt.xlabel("Component 1")
+    plt.ylabel("Component 2")
+
+    for i in range(len(data_trans)):
+        if y_df.iloc[i, 0] == 1:
+            plt.scatter(data_trans[i, 0], data_trans[i, 1], marker='^',  edgecolors='black')
+        else:
+            plt.scatter(data_trans[i, 0], data_trans[i, 1], marker='o', edgecolors='black')
+
+
+    plt.show
+    plt.savefig('latent_rep_1plot.png', dpi=300, bbox_inches='tight')
+
+    # print(clustering.labels_)
+
+    # train_zipped = zip(X_train, latent_rep, y_train)
+    # train_filtered = [(x_filt, latent_filt, y_filt) for x_filt, latent_filt, y_filt in train_zipped if y_filt == 1]
+
+    # X_train, latent_rep, y_train = zip(*train_filtered)
+    # latent_rep = np.array(latent_rep)
+
+
+    # print(latent_rep)
+    # print(latent_rep.shape)
  
-    # save the model
-    save_model_weights(model, args)
+    # # save the model
+    # save_model_weights(model, args)
+
+    # model_oneclass = tf.keras.Sequential([
+    #          tf.keras.layers.Dense(units = 20, activation = 'tanh'),
+    #          tf.keras.layers.Dense(units = 100, activation = 'tanh'),  
+    #          tf.keras.layers.Dense(units = 1), 
+    #      ], name = "OC Neural Net")
+
+    # model_oneclass.compile(optimizer='adams', loss=' ')
+    # model_oneclass.fit(latent_rep, epochs = 8)
 
 
 if __name__ == "__main__":
