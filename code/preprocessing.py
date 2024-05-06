@@ -3,7 +3,7 @@ from functools import reduce
 import string
 import pandas as pd
 from sklearn.model_selection import train_test_split
-
+import re
 def process_string(text):
   """
   Converts a string to lowercase and splits it into a list of words.
@@ -225,9 +225,9 @@ def get_data(train, test):
     test = strip_punct(test)
     train = strip_punct(train)
     train, test = mask_rare_words_in_strings(train, test, rare_words )
+    
     test = [word for word in test if all(ord(char) < 128 for char in word)]
     train = [word for word in train if all(ord(char) < 128 for char in word)]
-
 
     for word in train+test:  
         if word not in vocabulary:
@@ -241,24 +241,75 @@ def get_data(train, test):
         if word not in vocabulary:
             print(f"Word not found in vocabulary: '{word}'")
 
-    assert reduce(lambda x, y: x and (y in vocabulary), test)
+    if test:  # This checks if 'test' is not empty
+        assert all(word in vocabulary for word in test)
 
 
     assert all(0 <= value < vocab_size for value in vocabulary.values()) # good 
 
 
-
+    
     train_data = list(map(lambda x: vocabulary[x], train))
     test_data  = list(map(lambda x: vocabulary[x], test))
-
-
+    
     return train_data, test_data, vocabulary
 
 def preprocess_complete(csv_file, text_column):
     train_df, test_df = split_csv_train_test(csv_file, text_column)
+  
     train = str(concatenate_text_column(train_df, "text"))
     test = str(concatenate_text_column(test_df, "text"))
     return get_data(train,test)
 
-#text = "text"
+
+def preprocess_complete_ver2(csv_file, text_column):
+    
+    df = pd.read_csv(csv_file, sep='\t')
+    train_df, test_df = train_test_split(df, test_size=1-(0.8), random_state=42)
+    train = str(concatenate_text_column(train_df, "text"))
+    test = str(concatenate_text_column(test_df, "text"))
+    _,_,vocab= get_data(train,test)
+    train_sentence,train_label,test_sentence,test_label = [],[],[],[]
+    # for index, row in train_df.iloc[0:].iterrows(): 
+    #     elements = str(row[1]).split('.')
+    #     train_sentence+=elements
+    #     train_label+=[row[2]]*len(elements)
+    # for index, row in test_df.iloc[0:].iterrows(): 
+    #     elements = str(row[1]).split('.')
+    #     test_sentence+=elements
+    #     test_label+=[row[2]]*len(elements)
+    train_sentence_f,test_sentence_f=[],[]
+    # for i in range(len(train_sentence)):
+    #     tr,tes,voc=get_data(train_sentence[i],test_sentence[i])
+    #     train_sentence_f+=tr
+    #     test_sentence_f+=tes
+    sentences,labels=[],[]
+    for index, row in df.iloc[0:].iterrows(): 
+        elements = str(row[1]).split('.')#text
+        sentences+=elements
+        labels+=[row[2]]*len(elements)#label
+    print(len(sentences))
+    for idx in range(len(sentences)):
+      sentence=sentences[idx]
+      no_punc_sentence = re.sub(r'[^\w\s]', ' ', sentence)
+      words = no_punc_sentence.split()
+      sentence=''
+      for word in words:
+          if word not in vocab.keys():
+             sentence+='<UNK>'
+          else:
+             sentence+=word
+          sentence+=' '
+      sentence = sentence[:-1]
+      sentences[idx]=sentence
+    for idx in range(len(labels)):
+       if labels[idx]=='Winner!':
+          labels[idx]=1
+       else:
+          labels[idx]=0
+    return sentences,labels
+        
+
+text = "text"
 #final_train, final_test, final_vocab = preprocess_complete("../data/pdf_texts.csv",text)
+#sentences_train, sentences_test, labels_train,labels_test = preprocess_complete_ver2("../data/pdf_texts.tsv",text)

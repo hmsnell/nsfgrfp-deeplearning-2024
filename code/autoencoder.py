@@ -11,7 +11,7 @@ from preprocessing import *
 from sklearn.metrics import *
 from scipy.optimize import linear_sum_assignment as linear_assignment
 import matplotlib.pyplot as plt
-
+import sys
 class ClusteringLayer(Layer): # reference: https://github.com/Tony607/Keras_Deep_Clustering/blob/master/Keras-DEC.ipynb
     """
     Clustering layer converts input sample (feature) to soft label.
@@ -218,20 +218,14 @@ def get_final_results(y, y_pred):
 
 def main():
 
-    #train_data, test_data, vocab = preprocess_complete("../data/pdf_texts.csv", "text")
+    train_data, test_data = preprocess_complete_ver2("../data/pdf_texts.tsv", "text")
 
     ##### dummy data 
     
-    texts = [
-        "This is an example sentence.",
-        "Another example sentence here.",
-        "Yet another example for demonstration.", 
-        "This is a test sentence.", 
-        "Another example sentence.", 
-        "Final testing sentence." ]
-
-    labels = np.array([1, 1, 0, 1, 1, 0])
-
+    texts = train_data
+    print(texts[0:5])
+    labels = test_data
+    print(labels[0:5])
     # tokenize
     tokenizer = Tokenizer()
     tokenizer.fit_on_texts(texts)

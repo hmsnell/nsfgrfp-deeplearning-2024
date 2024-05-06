@@ -52,9 +52,9 @@ def load_weights(model):
 
 def main(args):
     # preprocess data
-    train_data, test_data, vocab = preprocess_complete("../data/pdf_texts.csv", "text")
+    train_data, test_data, vocab, sentences,labels = preprocess_complete("../data/pdf_texts.csv", "text")
 
-    print(train_data.shape())
+    print(train_data)
     # get an instance of AE
     model = AE(len(vocab))
 
