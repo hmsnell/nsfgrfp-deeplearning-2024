@@ -1,2 +1,2 @@
-model_checkpoint_path: "clustering_model_final"
-all_model_checkpoint_paths: "clustering_model_final"
+model_checkpoint_path: "ae_clustering"
+all_model_checkpoint_paths: "ae_clustering"

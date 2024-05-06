@@ -1,11 +1,16 @@
+# Main reference: https://github.com/Tony607/Keras_Deep_Clustering/blob/master/Keras-DEC.ipynb
+
 import tensorflow as tf
 import keras.backend as K
 from keras.layers import Layer, InputSpec, Dense
 from keras.models import Model
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
-from sklearn.cluster import KMeans
+from sklearn.cluster import KMeans 
 from preprocessing import *
+from sklearn.metrics import *
+from scipy.optimize import linear_sum_assignment as linear_assignment
+import matplotlib.pyplot as plt
 
 class ClusteringLayer(Layer): # reference: https://github.com/Tony607/Keras_Deep_Clustering/blob/master/Keras-DEC.ipynb
     """
@@ -87,15 +92,145 @@ def autoencoder(encoder, decoder):
     autoencoder = tf.keras.models.Model(encoder.input, decoder(encoder.output), name = 'autoencoder')
     return autoencoder
 
+def kmeans_clustering(x, y, n_clusters): 
+    kmeans = KMeans(n_clusters = n_clusters)
+    y_pred_kmeans = kmeans.fit_predict(x)   
+
+    accuracy = accuracy_score(y, y_pred_kmeans)
+    return accuracy
+
+def train_noclustering(train_data, max_sequence_length):
+    ## train model without clustering and save weights 
+
+    input_dim = train_data.shape[1]
+    encoding_dim = 2
+
+    encoder_layer = encoder(input_dim, encoding_dim, max_sequence_length, embedding_dim = 2)
+    decoder_layer = decoder(input_dim, encoding_dim)
+
+    model = autoencoder(encoder_layer, decoder_layer)
+
+    model.compile(optimizer='adam', loss = 'mse')
+
+    model.fit(train_data, train_data, epochs = 300, batch_size = 256, shuffle = True)
+
+    model.save_weights('./ae_noclustering')
+
+    return encoder_layer
+
+def train_clustering(encoder_layer, train_data, train_labels):
+    ## clustering 
+
+    n_clusters = 2
+    clustering_layer = ClusteringLayer(n_clusters)(encoder_layer.output)
+    clustering_model = Model(inputs = encoder_layer.input, outputs = clustering_layer)
+    clustering_model.compile(optimizer = tf.keras.optimizers.SGD(0.01, 0.9), loss = 'kld')
+
+    # initialize cluster centers 
+    kmeans = KMeans(n_clusters = n_clusters, n_init = 20)
+    y_pred = kmeans.fit_predict(encoder_layer.predict(train_data))
+
+    y_pred_last = np.copy(y_pred)
+
+    clustering_model.get_layer(name = 'clustering_layer').set_weights([kmeans.cluster_centers_])
+
+    # deep clustering 
+    
+    loss = 0
+    index = 0
+    maxiter = 8000
+    update_interval = 140
+    index_array = np.arange(train_data.shape[0])
+    tol = -0.0001
+    batch_size = 256
+
+    ### train with clustering 
+    for ite in range(int(maxiter)):
+        if ite % update_interval == 0:
+            q = clustering_model.predict(train_data, verbose=0)
+            p = target_distn(q)  # update the auxiliary target distribution p
+
+            # evaluate the clustering performance
+            y_pred = q.argmax(1)
+            if train_labels is not None:
+                acc = np.round(accuracy_score(train_labels, y_pred), 5)
+            loss = np.round(loss, 5)
+            print('Iter %d: acc = %.5f' % (ite, acc), ' ; loss=', loss)
+
+            # check stop criterion - model convergence
+            delta_label = np.sum(y_pred != y_pred_last).astype(np.float32) / y_pred.shape[0]
+            y_pred_last = np.copy(y_pred)
+            if ite > 1 and delta_label < tol:
+                print('delta_label ', delta_label, '< tol ', tol)
+                print('Reached tolerance threshold. Stopping training.')
+                break
+        idx = index_array[index * batch_size: min((index+1) * batch_size, train_data.shape[0])]
+        loss = clustering_model.train_on_batch(x = train_data[idx], y=p[idx])
+        index = index + 1 if (index + 1) * batch_size <= train_data.shape[0] else 0
+
+    clustering_model.save_weights('./ae_clustering')
+
+    return clustering_model, loss
+
+def test_clustering(clustering_model, loss, test_data, test_labels):
+    # evaluation testing
+
+    loss = 0
+    clustering_model.load_weights('./ae_clustering')
+    # Eval.
+    q = clustering_model.predict(test_data, verbose=0)
+    p = target_distn(q)  # update the auxiliary target distribution p
+
+    # evaluate the clustering performance
+    y_pred = q.argmax(1)
+    if test_labels is not None:
+        acc = np.round(accuracy_score(test_labels, y_pred), 5)
+        loss = np.round(loss, 5)
+    print('Test accuracy = %.5f' % (acc), ' ; loss = ', loss)
+
+    return p
+
+def target_distn(q): 
+        weight = q ** 2 / q.sum(0)
+        return (weight.T / weight.sum(1)).T
+
+def get_final_results(y, y_pred): 
+    #confusion_matrix_out = confusion_matrix(y, y_pred)
+
+    # plt.figure(figsize = (16, 14))
+    # sns.heatmap(confusion_matrix, annot = True, fmt = "d", annot_kws = {"size": 20});
+    # plt.title("Confusion matrix", fontsize = 30)
+    # plt.ylabel('True label', fontsize = 25)
+    # plt.xlabel('Clustering label', fontsize = 25)
+    # plt.savefig('confusion_matrix.pdf')
+
+    y_true = y.astype(np.int64)
+    D = max(y_pred.max(), y_true.max()) + 1
+    w = np.zeros((D, D), dtype=np.int64)
+    # Confusion matrix.
+    for i in range(y_pred.size):
+        w[y_pred[i], y_true[i]] += 1
+    ind = linear_assignment(-w)
+
+    sum([w[i, j] for i, j in ind]) * 1.0 / y_pred.size
+
+    return w
+
 def main():
 
     #train_data, test_data, vocab = preprocess_complete("../data/pdf_texts.csv", "text")
 
     ##### dummy data 
+    
     texts = [
-    "This is an example sentence.",
-    "Another example sentence here.",
-    "Yet another example for demonstration."]
+        "This is an example sentence.",
+        "Another example sentence here.",
+        "Yet another example for demonstration.", 
+        "This is a test sentence.", 
+        "Another example sentence.", 
+        "Final testing sentence." ]
+
+    labels = np.array([1, 1, 0, 1, 1, 0])
 
     # tokenize
     tokenizer = Tokenizer()
@@ -107,102 +242,26 @@ def main():
     # pad sequences
     max_sequence_length = max(len(seq) for seq in sequences)
     padded_sequences = pad_sequences(sequences, maxlen = max_sequence_length, padding = 'post')
-    print(padded_sequences)
+
+    train_data = padded_sequences[1:5]
+    test_data = padded_sequences[5:6]
+    train_labels = labels[1:5]
+    test_labels = labels[5:6]
+
+    #print(train_data)
+    #print(train_labels)
 
     ######
 
-    ## train model without clustering and save weights 
+    kmeans_accuracy = kmeans_clustering(train_data, train_labels, 2)
+    print(kmeans_accuracy)
 
-    input_dim = padded_sequences.shape[1]
-    encoding_dim = 2
+    encoder_layer = train_noclustering(train_data, max_sequence_length)
+    clustering_model, loss = train_clustering(encoder_layer, train_data, train_labels)
+    y_pred = test_clustering(clustering_model, loss, test_data, test_labels)
+    #print(y_pred)
+    #print(get_final_results(test_labels, y_pred))
 
-    encoder_layer = encoder(input_dim, encoding_dim, max_sequence_length, embedding_dim = 2)
-    decoder_layer = decoder(input_dim, encoding_dim)
-
-    model = autoencoder(encoder_layer, decoder_layer)
-
-    model.compile(optimizer='adam', loss = 'mse')
-
-    #model.fit(padded_sequences, padded_sequences, epochs = 300, batch_size = 256, shuffle = True)
-
-    model.save_weights('./ae_noclustering')
-
-    ## clustering 
-
-    n_clusters = 2
-    clustering_layer = ClusteringLayer(n_clusters)(encoder_layer.output)
-    clustering_model = Model(inputs = encoder_layer.input, outputs = clustering_layer)
-    clustering_model.compile(optimizer = tf.keras.optimizers.SGD(0.01, 0.9), loss = 'kld')
-
-    # initialize cluster centers 
-    kmeans = KMeans(n_clusters = n_clusters, n_init = 20)
-    y_pred = kmeans.fit_predict(encoder_layer.predict(padded_sequences))
-
-    y_pred_last = np.copy(y_pred)
-
-    clustering_model.get_layer(name = 'clustering_layer').set_weights([kmeans.cluster_centers_])
-
-    # deep clustering 
-
-    def target_distn(q): 
-        weight = q ** 2 / q.sum(0)
-        return (weight.T / weight.sum(1)).T
     
-    loss = 0
-    index = 0
-    maxiter = 8000
-    update_interval = 140
-    index_array = np.arange(padded_sequences.shape[0])
-    tol = -0.001
-    batch_size = 256
-
-    ### train with clustering 
-    for ite in range(int(maxiter)):
-        if ite % update_interval == 0:
-            q = clustering_model.predict(padded_sequences, verbose=0)
-            p = target_distn(q)  # update the auxiliary target distribution p
-
-            # evaluate the clustering performance
-            y_pred = q.argmax(1)
-            #if y is not None:
-                #acc = np.round(metrics.acc(y, y_pred), 5)
-                #nmi = np.round(metrics.nmi(y, y_pred), 5)
-                #ari = np.round(metrics.ari(y, y_pred), 5)
-            loss = np.round(loss, 5)
-            print('Iter %d: loss=', loss)
-
-            # check stop criterion - model convergence
-            delta_label = np.sum(y_pred != y_pred_last).astype(np.float32) / y_pred.shape[0]
-            y_pred_last = np.copy(y_pred)
-            if ite > 0 and delta_label < tol:
-                print('delta_label ', delta_label, '< tol ', tol)
-                print('Reached tolerance threshold. Stopping training.')
-                break
-        idx = index_array[index * batch_size: min((index+1) * batch_size, padded_sequences.shape[0])]
-        loss = clustering_model.train_on_batch(x=padded_sequences[idx], y=p[idx])
-        index = index + 1 if (index + 1) * batch_size <= padded_sequences.shape[0] else 0
-
-    clustering_model.save_weights('./clustering_model_final')
-    
-    # evaluation testing
-
-    clustering_model.load_weights('./clustering_model_final')
-    # Eval.
-    q = model.predict(padded_sequences, verbose=0)
-    p = target_distn(q)  # update the auxiliary target distribution p
-
-    # evaluate the clustering performance
-    y_pred = q.argmax(1)
-    
-        #acc = np.round(metrics.acc(y, y_pred), 5)
-        #nmi = np.round(metrics.nmi(y, y_pred), 5)
-        #ari = np.round(metrics.ari(y, y_pred), 5)
-    loss = np.round(loss, 5)
-    print('loss = ', loss)
-
-    print(q)
-    print(y_pred)
-
-
 if __name__ == "__main__":
-    main()
+     main()
