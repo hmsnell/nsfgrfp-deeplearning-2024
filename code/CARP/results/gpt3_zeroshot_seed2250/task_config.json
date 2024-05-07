@@ -1,0 +1,57 @@
+{
+  "data_dir_path": "/Users/yzhu194/Documents/Brown/CSCI2470/FinalProject/nsfgrfp-deeplearning-2024/data",
+  "dataloader": "Dataloader Object For SST-2.",
+  "dataset_name": "sst2",
+  "gpt3_backbone": "vanilla",
+  "gpt3_model_config": {
+    "batch_size": 6,
+    "engine_name": "davinci-002",
+    "exponential_base": null,
+    "frequency_penalty": 0.0,
+    "init_delay": 1,
+    "logprobs": 5,
+    "max_retries": 12,
+    "max_tokens": 200,
+    "openai_api_key": "sk-proj-K22mAztp37PoaW31HjE3T3BlbkFJmnib0weIl16KdWwpRzll",
+    "presence_penalty": 0.0,
+    "rate_limit": 50,
+    "rate_limit_delay": 70,
+    "temperature": 0.7,
+    "top_p": 1,
+    "user": null
+  },
+  "prompt_config": {
+    "dataloader": "Dataloader Object For SST-2.",
+    "delimiter": "\n\n",
+    "detokenizer": null,
+    "feasible_verbalizer": {
+      "0": "winner",
+      "1": "honorable mention"
+    },
+    "gradient_update": false,
+    "instance_num": 0,
+    "instance_strategy": "NULL",
+    "inverse_verbalizer": {
+      "honorable mention": "1",
+      "winner": "0"
+    },
+    "model_backbone": "gpt-3",
+    "non_verbalizer": [
+      "wrong",
+      "random",
+      "retry",
+      "retry-various"
+    ],
+    "prompt_pattern": "<TASK-DESC><DELIMITER>INPUT: <INPUT-TEXT>\n",
+    "prompt_strategy": "zero-shot",
+    "prompt_suffix": null,
+    "task_description": "The inputs are research proposals submitted to NSF GRF applications and this is a overall success classifier to identify whether the applicants will be the Winner or Honorable Mention. \nFirst, list CLUES (i.e., keywords, phrases, contextual information, semantic relations, semantic meaning, tones, references) for determining the overall SUCCESS of INPUT.\nSecond, induce a diagnostic REASONING process from CLUES and the INPUT for determining the overall SUCCESS (Limit the number of words to 130).\nThird, determine the overall SUCCESS of INPUT as Winner or Honorable Mention considering CLUES, the REASONING process and the INPUT.",
+    "verbalizer": {
+      "0": "Winner",
+      "1": "Honorable Mention"
+    },
+    "verbalizer_position_idx": -1
+  },
+  "prompt_type": "zero-shot",
+  "save_log_dir": "/Users/yzhu194/Documents/Brown/CSCI2470/FinalProject/nsfgrfp-deeplearning-2024/code/CARP/results/gpt3_zeroshot_seed2250"
+}
