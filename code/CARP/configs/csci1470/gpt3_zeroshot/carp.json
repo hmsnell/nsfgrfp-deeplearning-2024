@@ -5,7 +5,7 @@
   "gpt3_backbone": "vanilla",
   "gpt3_model_config": {
     "openai_api_key":
-      "sk-proj-K22mAztp37PoaW31HjE3T3BlbkFJmnib0weIl16KdWwpRzll",
+      "sk-r",
     "batch_size": 6,
     "engine_name": "davinci-002",
     "max_retries": 12,

@@ -12,7 +12,7 @@
     "logprobs": 5,
     "max_retries": 12,
     "max_tokens": 200,
-    "openai_api_key": "sk-proj-K22mAztp37PoaW31HjE3T3BlbkFJmnib0weIl16KdWwpRzll",
+    "openai_api_key": "sk-r",
     "presence_penalty": 0.0,
     "rate_limit": 50,
     "rate_limit_delay": 70,
