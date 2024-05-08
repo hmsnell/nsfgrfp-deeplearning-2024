@@ -5,7 +5,7 @@
   "gpt3_backbone": "vanilla",
   "gpt3_model_config": {
     "openai_api_key":
-      "sk-r",
+      "sk-proj-K22mAztp37PoaW31HjE3T3BlbkFJmnib0weIl16KdWwpRzll",
     "batch_size": 16,
     "engine_name": "davinci-002",
     "max_retries": 40,
@@ -28,6 +28,10 @@
     "instance_num": 16,
     "max_prompt_len": 3800,
     "instance_strategy": "finetuned-mlm-nearest-neighbor",
+    "data_retriever_candidate_dir": "/Users/yzhu194/Documents/Brown/CSCI2470/FinalProject/nsfgrfp-deeplearning-2024/data",
+    "retriever_name_or_path": "/home/lixiaoya/gpt_data_models/models/roberta-large",
+    "retriever_ckpt_path": "/home/lixiaoya/gpt_data_models/finetuned_models/sst2_model/original_gpu8_epoch5_bs16_lr1e-5_weightdecay0.1_warmup0.06_maxlen200_dropout0.2_grad1/checkpoint/epoch=4-val_loss=0.0216-val_acc=0.9553.ckpt",
+    "file_saved_retriever_results": "/home/lixiaoya/gpt_data_models/nearest_neighbors/sst2_nearest_neighbors/test_finetuned_roberta-large_candtrain_thres0.0_top24_seed9998.jsonl",
     "model_backbone": "gpt-3",
     "prompt_strategy": "few-shot",
     "task_description": "The inputs are research proposals submitted to NSF GRF applications and this is a overall success classifier to identify whether the applicants will be the Winner or Honorable Mention. \nFirst, list CLUES (i.e., keywords, phrases, contextual information, semantic relations, semantic meaning, tones, references) for determining the overall SUCCESS of INPUT.\nSecond, induce a diagnostic REASONING process from CLUES and the INPUT for determining the overall SUCCESS (Limit the number of words to 130).\nThird, determine the overall SUCCESS of INPUT as Winner or Honorable Mention considering CLUES, the REASONING process and the INPUT.",

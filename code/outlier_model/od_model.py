@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 import plotly.express as px
 from sklearn import utils
 from scipy.optimize import minimize
-
+import sklearn
 
 def parseArguments():
     parser = argparse.ArgumentParser()
@@ -335,45 +335,65 @@ def main(args):
     # shuffle and batch the data 
     train_dataset = tf.data.Dataset.from_tensor_slices((tf.convert_to_tensor(X_train), y_train, is_winner_train))
     train_dataset = train_dataset.shuffle(buffer_size=20).batch(X_train.shape[0])
+    
+    auc_train_l = []
+    auc_test_l = []
+    
+    for i in range(10):
 
-    # Train VAE
-    for epoch_id in range(args.num_epochs):
-        total_loss = train_vae(model, train_dataset, args, is_winner_train)[0]
-        print(f"Train Epoch: {epoch_id} \tLoss: {total_loss / len(train_dataset):.6f}")
+        # Train VAE
+        for epoch_id in range(args.num_epochs):
+            total_loss = train_vae(model, train_dataset, args, is_winner_train)[0]
+            print(f"Train Epoch: {epoch_id} \tLoss: {total_loss / len(train_dataset):.6f}")
+    
+        # save the latent representation for train
+        latent_rep_train = train_vae(model, train_dataset, args, is_winner_train)[1]
+        
+        # get the corresponding label for the train after shuffling
+        y_train_dataset = train_dataset.map(lambda x, y, z: y)
+        y_train_values= [y.numpy() for y in y_train_dataset]
+        y_train_df = pd.DataFrame(y_train_values).transpose()
+        
+        # get latent representation for train too
+        is_winner_test = mask_inputs(y_test, 0.0)
+        test_dataset = tf.data.Dataset.from_tensor_slices((tf.convert_to_tensor(X_test), y_test, is_winner_test))
+        test_dataset = test_dataset.shuffle(buffer_size=20).batch(X_test.shape[0])
+        latent_rep_test = train_vae(model, test_dataset, args, is_winner_test)[1]
+        
+        # get the corresponding label for the test after shuffling
+        y_test_dataset = test_dataset.map(lambda x, y, z: y)
+        y_test_values= [y.numpy() for y in y_test_dataset]
+        y_test_df = pd.DataFrame(y_test_values).transpose()
+    
+        # convert latent representation to numpy
+        latent_rep_train = latent_rep_train.numpy()
+        latent_rep_test = latent_rep_test.numpy()
+        
+        # one-class outlier detection for both train and test latent space
+        train_decisionScore, train_labels, test_decisionScore, test_labels = One_Class_NN_explicit_sigmoid(latent_rep_train, y_train_df, latent_rep_test, y_test_df)
+    
+        
+        # Plot training data of decision score vs labels
+        plot_scores(train_decisionScore, train_labels, "Training_Decision_Scores_vs_Labels2")
+        
+        # Plot test data of decision score vs labels
+        plot_scores(test_decisionScore, test_labels, "Testing_Decision_Scores_vs_Labels2")
+        
+        
+        auc_train = sklearn.metrics.roc_auc_score(train_labels, train_decisionScore)
+        auc_test = sklearn.metrics.roc_auc_score(test_labels, test_decisionScore)
+        print("Round "+str(i) + ": auc score for training dataset = " + str(auc_train))
+        print("Round "+str(i) + "auc score for testing dataset = " + str(auc_test))
+        auc_train_l.append(auc_train)
+        auc_test_l.append(auc_test)
 
-    # save the latent representation for train
-    latent_rep_train = train_vae(model, train_dataset, args, is_winner_train)[1]
-    
-    # get the corresponding label for the train after shuffling
-    y_train_dataset = train_dataset.map(lambda x, y, z: y)
-    y_train_values= [y.numpy() for y in y_train_dataset]
-    y_train_df = pd.DataFrame(y_train_values).transpose()
-    
-    # get latent representation for train too
-    is_winner_test = mask_inputs(y_test, 0.0)
-    test_dataset = tf.data.Dataset.from_tensor_slices((tf.convert_to_tensor(X_test), y_test, is_winner_test))
-    test_dataset = test_dataset.shuffle(buffer_size=20).batch(X_test.shape[0])
-    latent_rep_test = train_vae(model, test_dataset, args, is_winner_test)[1]
-    
-    # get the corresponding label for the test after shuffling
-    y_test_dataset = test_dataset.map(lambda x, y, z: y)
-    y_test_values= [y.numpy() for y in y_test_dataset]
-    y_test_df = pd.DataFrame(y_test_values).transpose()
 
-    # convert latent representation to numpy
-    latent_rep_train = latent_rep_train.numpy()
-    latent_rep_test = latent_rep_test.numpy()
-    
-    # one-class outlier detection for both train and test latent space
-    train_decisionScore, train_labels, test_decisionScore, test_labels = One_Class_NN_explicit_sigmoid(latent_rep_train, y_train_df, latent_rep_test, y_test_df)
-
-    
-    # Plot training data of decision score vs labels
-    plot_scores(train_decisionScore, train_labels, "Training_Decision_Scores_vs_Labels")
-    
-    # Plot test data of decision score vs labels
-    plot_scores(test_decisionScore, test_labels, "Testing_Decision_Scores_vs_Labels")
-
+    auc_train_l = np.array(auc_train_l)
+    print('average auc for training dataset =' + str(auc_train_l.mean()))
+    print('std for training dataset =' + str(auc_train_l.std()))
+    auc_test_l = np.array(auc_test_l)
+    print('average auc for testing dataset =' + str(auc_test_l.mean()))
+    print('std for testing dataset =' + str(auc_test_l.std()))
 
     ### the following large chunck of code are used to cluster the data based on its latent space and then plot them with a tsne
     # clustering = OPTICS(min_samples=5).fit(latent_rep)
