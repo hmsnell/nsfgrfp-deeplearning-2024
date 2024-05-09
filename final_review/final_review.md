@@ -128,6 +128,19 @@ Rare word masking could be approached differently given the requirements for win
 One of the largest issues with our approach involves limitations in data availability. There are significant class imbalances in the available dataset, and the quantity of uploaded essays is limited. Each year about 2000 applications are awarded the fellowship, and we only had around 200 entries for the last 17 years. Given more time we would be able to address class imbalances and look at different tokenization methods to try to correct for dataset limitations which include weight-based clustering algorithms. 
 
 
+<h3 align="center">References</h3>
+
+Code adapted from: https://github.com/Tony607/Keras_Deep_Clustering/blob/master/Keras-DEC.ipynb
+
+Arias Chao, Manuel & Adey, Bryan & Fink, Olga. (2019). Implicit supervision for fault detection and segmentation of emerging fault types with Deep Variational 
+Autoencoders. 
+
+Cerliani, M. (2020, November 2). One-Class Neural Network in Keras. Towards Data Science. https://towardsdatascience.com/one-class-neural-network-in-keras-249ff56201c0
+
+Chalapathy, R., Menon, A. K., & Chawla, S. (2018). Anomaly Detection using One-Class Neural Networks. https://arxiv.org/abs/1802.06360v2
+
+National Science Foundation. (n.d.). NSF Graduate Research Fellowship Program (GRFP). Retrieved May 7, 2024, from https://new.nsf.gov/funding/opportunities/nsf-graduate-research-fellowship-program-grfp/nsf23-605/solicitation#:~:text=The%20maximum%20length%20of%20the,lists%20of%20publications%20and%20presentations.
+
 
 
 
