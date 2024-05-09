@@ -107,24 +107,24 @@ Finally, another challenge is to run the CARP. As long as the CARP is a gpt3-bas
 
 <h2 align="center">Reflection</h2>
 
-<h4 align="center">How do you feel your project ultimately turned out? How did you do relative to your base/target/stretch goals?
-</h4>
+<h3 align="center">How do you feel your project ultimately turned out? How did you do relative to your base/target/stretch goals?
+</h3>
 
 Initially, our base goal was to identify the features of a funded NSF GRFP grant by detecting outliers in a group of funded and unfunded applications. We had to explore various approaches to finally come up with an evaluation metric and visual representation that can show the outliers and provide a metric on the ‘fundability’ of the proposal. As can be seen from our final figures (figure .. figure ..), we can state that we met our base goal. Our target goal was to outperform regular machine learning algorithms in assessing whether a grant application would be accepted by the NSF or not. We proved this by comparing the performance of our model with that of regular K Means clustering on the test data. Our model was able to outperform regular K Means clustering by approximately threefold. Thus, we can state that we have achieved our target goal as well. Our stretch goal was to simulate data to increase the input of unfunded projects to our model. We initially intended to enhance the performance of our model with this approach. However, as we proceeded with the project, it quickly became clear that simulating highly representative negative sample data is more complex than initially believed. Even if we could generate such data, it could have added bias to our results. Since there are already multiple uncontrolled variables that have a high impact on the performance of the model, adding a new one at an early stage seemed unfavorable with the resources we have at this point.
 
-<h4 align="center">Did your model work out the way you expected it to?</h4>
+<h3 align="center">Did your model work out the way you expected it to?</h3>
 
 Given the limited size of our data, it did work out the way we expected it to. In future projects with larger datasets we would expect it to have greater accuracy. We are generally pleased by the performance of the models given the limitations we encountered.
 
-<h4 align="center">How did your approach change over time? What kind of pivots did you make, if any? </h4>
+<h3 align="center">How did your approach change over time? What kind of pivots did you make, if any? </h3>
 
 We were lucky in that we didn’t have to pivot much from our original idea with this data. Instead of pivoting, we tried to add new models to answer other facets of our overall question about the NSF GRFP essay features. 
 
-<h4 align="center">Would you have done differently if you could do your project over again?</h4>
+<h3 align="center">Would you have done differently if you could do your project over again?</h3>
 
 Rare word masking could be approached differently given the requirements for winning the fellowship. One of the conditions for a winning application is originality. Because the essays are concatenated before masking rare words, there is an element of originality that will innately be masked and omitted from the processed input data. Some of the details that make papers unique and potentially award winning cannot thus be analyzed, although the frequency of “<UNK>” is recorded.
 
-<h4 align="center">What do you think you can further improve on if you had more time? What are your biggest takeaways from this project/what did you learn?</h4>
+<h3 align="center">What do you think you can further improve on if you had more time? What are your biggest takeaways from this project/what did you learn?</h3>
 
 One of the largest issues with our approach involves limitations in data availability. There are significant class imbalances in the available dataset, and the quantity of uploaded essays is limited. Each year about 2000 applications are awarded the fellowship, and we only had around 200 entries for the last 17 years. Given more time we would be able to address class imbalances and look at different tokenization methods to try to correct for dataset limitations which include weight-based clustering algorithms. 
 
