@@ -1,5 +1,4 @@
 
-### Final Report *delete this line after review*
 <h1 align="center">Can you write a winning essay?</h1>
 <h4 align="center">CCMBrokers</h4>
  <p align="center">Aley Abdel-Ghaffar, Shevaughn Holness, Yu Zhu, Zeynep Kilinc, Hannah Snell</p>
@@ -92,7 +91,7 @@ Figure 4 shows our testing data for the outlier detection process and shows us a
 
 While the figures above are the illustrations from 1 round, we also calculated the average AUC score, which is the Area Under the ROC (Receiver Operating Characteristics) Curve, and it tells the capability for the model to distinguish between classes and the higher the score the better. The average AUC score for the training dataset over 10 rounds is 0.4784±0.079 and that for the testing dataset is 0.515±0.224. The highest AUC score for the testing dataset is 0.95 and the lowest score is 0.15. It indicates that our model can perform well on this outlier detection problem, but the performance is not guaranteed. 
 
-<h2 align="center">Challanges</h2>
+<h2 align="center">Challenges</h2>
 
 
 The intended data to be retrieved originally comprised 288 entries. However, some of the links corresponding to these files are found to be expired. Although there was nothing we could do with the expired links, we were able to retrieve the documents that had a corrupted link.  We have addressed this issue through hyperlink manipulation by passing the document Google ID for Google Drive documents, to the default Google export URL, and by sending direct hyperlink requests along with headers  to various search engines. Additionally, we had to catch other various forms of data storage (as not all are stored on Alex Lang’s site) which each had their own unique fixes. Luckily, we were able to consolidate all fixes into about two functions.
