@@ -92,6 +92,43 @@ Figure 4 shows our testing data for the outlier detection process and shows us a
 
 While the figures above are the illustrations from 1 round, we also calculated the average AUC score, which is the Area Under the ROC (Receiver Operating Characteristics) Curve, and it tells the capability for the model to distinguish between classes and the higher the score the better. The average AUC score for the training dataset over 10 rounds is 0.4784±0.079 and that for the testing dataset is 0.515±0.224. The highest AUC score for the testing dataset is 0.95 and the lowest score is 0.15. It indicates that our model can perform well on this outlier detection problem, but the performance is not guaranteed. 
 
+<h2 align="center">Challanges</h2>
+
+
+The intended data to be retrieved originally comprised 288 entries. However, some of the links corresponding to these files are found to be expired. Although there was nothing we could do with the expired links, we were able to retrieve the documents that had a corrupted link.  We have addressed this issue through hyperlink manipulation by passing the document Google ID for Google Drive documents, to the default Google export URL, and by sending direct hyperlink requests along with headers  to various search engines. Additionally, we had to catch other various forms of data storage (as not all are stored on Alex Lang’s site) which each had their own unique fixes. Luckily, we were able to consolidate all fixes into about two functions.
+
+Optimizing the evaluation metric was expected to be a challenge for this project. In the real world scenario, we expected to predict the success of the proposals without a ground truth label, so rather than a classification problem, we treat it as a clustering problem first. While our Clustering Autoencoder model clusters proposals to two different classes, we use a confusion matrix in addition to the accuracy to illustrate the recall and precision rate. Moreover, for our outlier model, as long as it outputs the decision score for each sample, which is similar to a probability distribution saying whether the sample is in the class, we can use AUC score as a metric, while it requires the true label and a target score.
+
+In general, our biggest challenge was working with an incredibly small dataset. Although the final results from our models were better than we expected, we still realize that the interpretability and generalizability of these models to other fellowship applicant pools is probably not great. The most glaring data issue is the fact that we have no true negative data, which represents the “rejected” group of applicants, which could have been useful in this model to parse out features in winning essays that could be advertised as strategies for writing an NSF GRFP research proposal. 
+
+One large challenge for the VAE portion of the outlier detection model was understanding the specialized loss that went with it as we had not looked at a supervised VAE done that way in class. Understanding the math and debating about changing the loss entirely was definitely a long and tough decision. Luckily, we were able to figure out the loss. Furthermore, for part two, finding a non-qualitative metric (as the current metric is visually looking at the decision scores and their associated labels) was difficult, and we did not end up finding a better alternative.
+
+Finally, another challenge is to run the CARP. As long as the CARP is a gpt3-based model, it requires the openai API. We got a personal API key to run the model, however, it has a maximum token limitation. Because our texts are long, we failed to train the model with the full dataset, but a subset of 40 proposals, which led to unsatisfactory results. Moreover, the first step for the few-shot model is to generate the prompt for the training dataset with a pre-trained Roberta model, and it requires GPUs. We didn’t have personal GPUs and the codes corrupted on the Oscar clusters. Therefore, we ended with no significant results from the CARP model. 
+
+<h2 align="center">Reflection</h2>
+
+<h4 align="center">How do you feel your project ultimately turned out? How did you do relative to your base/target/stretch goals?
+</h4>
+
+Initially, our base goal was to identify the features of a funded NSF GRFP grant by detecting outliers in a group of funded and unfunded applications. We had to explore various approaches to finally come up with an evaluation metric and visual representation that can show the outliers and provide a metric on the ‘fundability’ of the proposal. As can be seen from our final figures (figure .. figure ..), we can state that we met our base goal. Our target goal was to outperform regular machine learning algorithms in assessing whether a grant application would be accepted by the NSF or not. We proved this by comparing the performance of our model with that of regular K Means clustering on the test data. Our model was able to outperform regular K Means clustering by approximately threefold. Thus, we can state that we have achieved our target goal as well. Our stretch goal was to simulate data to increase the input of unfunded projects to our model. We initially intended to enhance the performance of our model with this approach. However, as we proceeded with the project, it quickly became clear that simulating highly representative negative sample data is more complex than initially believed. Even if we could generate such data, it could have added bias to our results. Since there are already multiple uncontrolled variables that have a high impact on the performance of the model, adding a new one at an early stage seemed unfavorable with the resources we have at this point.
+
+<h4 align="center">Did your model work out the way you expected it to?</h4>
+
+Given the limited size of our data, it did work out the way we expected it to. In future projects with larger datasets we would expect it to have greater accuracy. We are generally pleased by the performance of the models given the limitations we encountered.
+
+<h4 align="center">How did your approach change over time? What kind of pivots did you make, if any? </h4>
+
+We were lucky in that we didn’t have to pivot much from our original idea with this data. Instead of pivoting, we tried to add new models to answer other facets of our overall question about the NSF GRFP essay features. 
+
+<h4 align="center">Would you have done differently if you could do your project over again?</h4>
+
+Rare word masking could be approached differently given the requirements for winning the fellowship. One of the conditions for a winning application is originality. Because the essays are concatenated before masking rare words, there is an element of originality that will innately be masked and omitted from the processed input data. Some of the details that make papers unique and potentially award winning cannot thus be analyzed, although the frequency of “<UNK>” is recorded.
+
+<h4 align="center">What do you think you can further improve on if you had more time? What are your biggest takeaways from this project/what did you learn?</h4>
+
+One of the largest issues with our approach involves limitations in data availability. There are significant class imbalances in the available dataset, and the quantity of uploaded essays is limited. Each year about 2000 applications are awarded the fellowship, and we only had around 200 entries for the last 17 years. Given more time we would be able to address class imbalances and look at different tokenization methods to try to correct for dataset limitations which include weight-based clustering algorithms. 
+
+
 
 
 
